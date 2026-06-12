@@ -36,6 +36,12 @@ To run the application, you need to open **three separate terminals** in the pro
 ### 1️⃣ Python FastAPI Service (`app/`)
 The Python virtual environment and dependencies are located inside the `app/` folder.
 
+**Install dependencies (if setting up fresh or updating packages):**
+```powershell
+# Install requirements directly into the virtual environment
+app\.venv\Scripts\pip.exe install -r app/requirements.txt
+```
+
 **Run directly from the root directory (Recommended, avoids PowerShell script execution policy issues):**
 ```powershell
 # Run the FastAPI microservice using the virtual environment python interpreter directly
