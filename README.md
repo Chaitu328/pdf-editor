@@ -36,22 +36,33 @@ To run the application, you need to open **three separate terminals** in the pro
 ### 1️⃣ Python FastAPI Service (`app/`)
 The Python virtual environment and dependencies are located inside the `app/` folder.
 
-**Command (PowerShell):**
+**Run directly from the root directory (Recommended, avoids PowerShell script execution policy issues):**
 ```powershell
-# 1. Activate the Python virtual environment
+# Run the FastAPI microservice using the virtual environment python interpreter directly
+app\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+**Alternative: Run from inside the `app/` folder:**
+```powershell
+# 1. Navigate to the app folder
+cd app
+
+# 2. Run the FastAPI microservice (imports will resolve correctly via our path correction)
+..\app\.venv\Scripts\python.exe -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+```
+
+**Alternative: Activate the environment first (PowerShell):**
+```powershell
+# 1. Activate the Python virtual environment (if allowed by your system policy)
 app\.venv\Scripts\Activate.ps1
 
 # 2. Run the FastAPI microservice from the root directory
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-**Command (Command Prompt / CMD):**
+**Alternative: Activate the environment first (Command Prompt / CMD):**
 ```cmd
-:: 1. Activate the Python virtual environment
-app\.venv\Scripts\activate.bat
-
-:: 2. Run the FastAPI microservice from the root directory
-python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+app\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 - **Service URL**: `http://127.0.0.1:8000`
