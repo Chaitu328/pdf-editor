@@ -2,11 +2,19 @@ import os
 import uuid
 from dotenv import load_dotenv
 
-dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+# Path to app/ directory
+app_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+dotenv_path = os.path.join(app_dir, ".env")
 load_dotenv(dotenv_path=dotenv_path)
 
-UPLOAD_DIR = os.getenv("UPLOAD_DIR", "storage/uploads")
-OUTPUT_DIR = os.getenv("OUTPUT_DIR", "storage/outputs")
+def get_abs_path(env_var: str, default_val: str) -> str:
+    path = os.getenv(env_var, default_val)
+    if not os.path.isabs(path):
+        path = os.path.realpath(os.path.join(app_dir, path))
+    return path
+
+UPLOAD_DIR = get_abs_path("UPLOAD_DIR", "storage/uploads")
+OUTPUT_DIR = get_abs_path("OUTPUT_DIR", "storage/outputs")
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)

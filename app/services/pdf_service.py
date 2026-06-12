@@ -176,6 +176,25 @@ async def apply_edits(data: dict) -> dict:
         elif edit_type == "delete_text":
             # Already handled by physical redactions in step 2
             applied_count += 1
+        elif edit_type == "replace_image":
+            page_num = edit.get("page", 1) - 1
+            bbox = edit.get("bbox")
+            image_data = edit.get("image_data")
+            if page_num < 0 or page_num >= len(doc) or not bbox or not image_data:
+                continue
+
+            page = doc[page_num]
+            rect = fitz.Rect(bbox)
+            
+            import base64
+            try:
+                if isinstance(image_data, str) and "," in image_data:
+                    image_data = image_data.split(",", 1)[1]
+                img_bytes = base64.b64decode(image_data)
+                page.insert_image(rect, stream=img_bytes)
+                applied_count += 1
+            except Exception as e:
+                print(f"Failed to insert image: {e}")
 
     output_path = generate_output_path()
     try:

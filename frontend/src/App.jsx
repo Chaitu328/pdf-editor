@@ -42,8 +42,10 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [canvasReady, setCanvasReady] = useState(false);
   const [showAllFields, setShowAllFields] = useState(false);
+  const [replacementPhoto, setReplacementPhoto] = useState(null);
 
   const fileInputRef = useRef(null);
+  const photoInputRef = useRef(null);
   const canvasRef = useRef(null);
   const pdfDocRef = useRef(null);
 
@@ -57,7 +59,19 @@ export default function App() {
     setError(null);
     setCanvasReady(false);
     setShowAllFields(true);
+    setReplacementPhoto(null);
     pdfDocRef.current = null;
+  };
+
+  const handlePhotoChange = (e) => {
+    const f = e.target.files[0];
+    if (f) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setReplacementPhoto(event.target.result);
+      };
+      reader.readAsDataURL(f);
+    }
   };
 
   const handleDragOver = (e) => { e.preventDefault(); setDragging(true); };
@@ -164,8 +178,25 @@ export default function App() {
         });
       });
 
+      if (replacementPhoto) {
+        // Main photo
+        editList.push({
+          type: "replace_image",
+          page: 1,
+          bbox: [41.75, 153.69, 101.27, 234.19],
+          image_data: replacementPhoto,
+        });
+        // Small photo
+        editList.push({
+          type: "replace_image",
+          page: 1,
+          bbox: [242.42, 136.49, 262.26, 162.0],
+          image_data: replacementPhoto,
+        });
+      }
+
       if (editList.length === 0) {
-        alert("No edits were made. Edit some text first and then export.");
+        alert("No edits were made. Edit some text or replace photo first and then export.");
         return;
       }
 
@@ -209,7 +240,7 @@ export default function App() {
     }
   };
 
-  const editCount = Object.keys(edits).filter((id) => edits[id] !== undefined).length;
+  const editCount = Object.keys(edits).filter((id) => edits[id] !== undefined).length + (replacementPhoto ? 1 : 0);
 
   return (
     <div className="app-shell">
@@ -244,6 +275,16 @@ export default function App() {
 
             <button className="icon-btn sidebar-toggle" onClick={() => setSidebarOpen((s) => !s)}><Layers size={15} /></button>
             <button className={`icon-btn toggle-fields-btn ${showAllFields ? "active-toggle" : ""}`} onClick={() => setShowAllFields((s) => !s)}><Eye size={15} /></button>
+            <input
+              type="file"
+              ref={photoInputRef}
+              onChange={handlePhotoChange}
+              accept="image/*"
+              style={{ display: "none" }}
+            />
+            <button className={`btn btn-ghost ${replacementPhoto ? "photo-active" : ""}`} onClick={() => photoInputRef.current?.click()}>
+              <Upload size={14} /> {replacementPhoto ? "Change Photo" : "Replace Photo"}
+            </button>
             <button className="btn btn-ghost" onClick={handleReset}><RotateCcw size={14} /> Reset</button>
             <button className="btn btn-primary" onClick={handleDownload} disabled={saving}>
               {saving ? <Loader2 size={14} className="spin" /> : <Download size={14} />}
@@ -290,6 +331,42 @@ export default function App() {
               <div className="canvas-wrapper" style={{ width: `${displayWidth}px`, height: `${displayHeight}px` }}>
                 <canvas ref={canvasRef} className="pdf-canvas" style={{ width: `${displayWidth}px`, height: `${displayHeight}px` }} />
                 <div className="overlay-layer">
+                  {currentPage === 1 && replacementPhoto && (
+                    <>
+                      {/* Main photo overlay */}
+                      <img
+                        src={replacementPhoto}
+                        alt="Profile Photo"
+                        style={{
+                          position: "absolute",
+                          left: `${41.75 * scaleX}px`,
+                          top: `${153.69 * scaleY}px`,
+                          width: `${(101.27 - 41.75) * scaleX}px`,
+                          height: `${(234.19 - 153.69) * scaleY}px`,
+                          objectFit: "cover",
+                          border: "2px dashed #3b82f6",
+                          pointerEvents: "none",
+                          zIndex: 5,
+                        }}
+                      />
+                      {/* Small photo overlay */}
+                      <img
+                        src={replacementPhoto}
+                        alt="Profile Photo Small"
+                        style={{
+                          position: "absolute",
+                          left: `${242.42 * scaleX}px`,
+                          top: `${136.49 * scaleY}px`,
+                          width: `${(262.26 - 242.42) * scaleX}px`,
+                          height: `${(162.0 - 136.49) * scaleY}px`,
+                          objectFit: "cover",
+                          border: "2px dashed #3b82f6",
+                          pointerEvents: "none",
+                          zIndex: 5,
+                        }}
+                      />
+                    </>
+                  )}
                   {pageMetadata.texts.map((t) => {
                     const [x1, y1, x2, y2] = t.bbox;
                     const value = edits[t.id] ?? t.text;
@@ -315,6 +392,7 @@ export default function App() {
                           height: `${(y2 - y1) * scaleY}px`,
                           fontSize: `${computedFontSize}px`,
                           fontFamily: isTelugu ? "'Noto Sans Telugu', sans-serif" : "'Inter', sans-serif",
+                          zIndex: 6,
                         }}
                         title={`Original: ${t.text}`}
                       />

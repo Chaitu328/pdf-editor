@@ -52,7 +52,11 @@ async def download(
         raise HTTPException(status_code=404, detail=f"File not found: {path}")
 
     storage_dir_raw = os.getenv("STORAGE_DIR", "storage")
-    storage_dir = os.path.realpath(os.path.abspath(storage_dir_raw))
+    if not os.path.isabs(storage_dir_raw):
+        app_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        storage_dir = os.path.realpath(os.path.join(app_dir, storage_dir_raw))
+    else:
+        storage_dir = os.path.realpath(storage_dir_raw)
 
     if not requested.startswith(storage_dir + os.sep) and requested != storage_dir:
         raise HTTPException(status_code=403, detail="Access denied.")
